@@ -1,0 +1,50 @@
+#!/bin/bash
+# Author Dominik Piasecki || dominik.piasecki@oracle.com
+# Last updated 3/28/2017
+
+usage() {
+  cat << EOF
+tree-size v1
+Displays the amount of space used by each folder in a directory
+
+Usage: tree-size /some/directory
+
+If no directory is specified then the PWD will be used
+
+tree-size (--help or -h) shows this message
+
+EOF
+    #' Fix syntax highlight on sublime
+    exit $1
+}
+
+# check whether user had supplied -h or --help . If yes display usage
+if [[ ( $1 == "--help") ||  $1 == "-h" ]]
+	then
+		usage
+		exit
+fi
+
+# if no argument supplied, use pwd
+if [  $# -le 0 ]
+	then
+		target=""
+  else
+    target="$1"
+fi
+
+# parse the $target & list folders in decending order by size
+du $target -k --max-depth=1 | sort -nr | awk '
+   BEGIN {
+      split("KB,MB,GB,TB", Units, ",");
+   }
+   {
+      u = 1;
+      while ($1 >= 1024) {
+         $1 = $1 / 1024;
+         u += 1
+      }
+      $1 = sprintf("%.1f %s", $1, Units[u]);
+      print $0;
+   }
+  '
