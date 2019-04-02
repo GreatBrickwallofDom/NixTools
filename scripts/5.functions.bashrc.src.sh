@@ -155,15 +155,21 @@ function repeat() {       # Repeat n times command.
     done
 }
 
-#Better ssh, copy bashrc to homedir and use as temp bashrc delete when done
+# Better ssh, copy bashrc to homedir and use as temp bashrc delete when done
+# accepts short names for rubi fqdns (ex. frpd-ade0000.lab1)
 function s() {
-    printf "\n${INFO}Setting up the environment, please hold on.${NC}\n"
-    local BrcTmpName=$(openssl rand -hex 16).bashrc_tmp
-    rsync -avPz --no-motd ~/.bashrc $1:~/.$BrcTmpName
-    rsync -avPz --no-motd ~/scripts $1:~/.
-    clear
-    printf "\n${INFO}Openeing SSH session to $1 ${NC}\n" 
-    ssh -t $1 "bash --rcfile ~/.$BrcTmpName ; rm ~/.$BrcTmpName"
+  if [[ $1 =~ f[a-z]{3}-[a-z]{3}[0-9]{4}\.[a-z]{3}[0-9]{1}$ ]]; then
+    local targetHost="$1.fanops.net"
+  else
+    local targetHost="$1"
+  fi
+  printf "\n${INFO}Setting up the environment, please hold on.${NC}\n"
+  local BrcTmpName=$(openssl rand -hex 16).bashrc_tmp
+  rsync -avPz --no-motd ~/.bashrc $targetHost:~/.$BrcTmpName
+  rsync -avPz --no-motd ~/scripts $targetHost:~/.
+  clear
+  printf "\n${INFO}Openeing SSH session to $targetHost ${NC}\n" 
+  ssh -t $targetHost "bash --rcfile ~/.$BrcTmpName ; rm ~/.$BrcTmpName"
 }
 
 if [[ $machine != "Mac" ]]; then
@@ -213,6 +219,17 @@ function chatfind() {
   fi
 }
 
+# Search all gitrepos for string
+function gitfind() {
+  if [ $# -eq 0 ]
+  then
+    printf 'Usage:  gitfind [SEARCH STRING] [OPTIONAL EGREP ARGS] \n'
+  else
+    printf "Searching all GitRepos for < $1 > .... \n"
+    find ~/GitRepos/ -name "*" -type f -exec egrep -i -H --color ${@:2} "$1" {} \;
+  fi
+}
+
 # Gen a random passwd with the specified number of characters. Usage:   genpasswd 5
 function genpasswd() {
 	local l=$1
@@ -233,7 +250,7 @@ function genpasswd() {
 #arsenal nodes search
 function ans() {
 	if [[ $# < 1 ]]; then
-		printf "Usage:\n ~$ ans <name> <field>\n Field is optional only if you want more info about a host\n\n"
+		printf "Usage:\n ~$ ans <name> <field>\n Field is optional only if you want more info, wrap in "" for extraneous regex\n\n"
 	else
 		#~/scripts/arsenal-wrapper.sh -n $1 $(if [[ $2 != "" ]]; then echo "-f $2"; fi)
 		#if only name is provided control will enter here
@@ -250,7 +267,7 @@ function ans() {
 #arsenal nodes update (takes an action and updates a host field)
 function anu() {
 	if [[ $# < 3 ]]; then
-		printf "Usage:\n ~$ anu <name> <field> <new-field> \n\n"
+		printf "Usage:\n ~$ anu <name> <field> <new-value> \n\n"
 	else
 		#~/scripts/arsenal-wrapper.sh -n $1 -f $2 -u $3
 		if [ $1 == "" ] || [ $2 == "" ] || [ $3 == "" ]; then
@@ -265,13 +282,29 @@ function anu() {
 
 #arsenal group search
 function ags() {
-	if [[ $# < 2 ]]; then
+	if [[ $# < 1 ]]; then
 		printf "Usage:\n ~$ ags <grp-name> <field>\n\n ex. \n  ~$ ags frp_ade owner"
 	else
 		#~/scripts/arsenal-wrapper.sh -n $1 -f $2 -g
 		arsenal node_groups search name="$1" -f "$2"
 	fi
 }
+
+
+######
+# Cobbler functions rubi
+######
+#cobbler system report
+function csr () {
+  if [[ $# < 1 ]]; then
+		printf "Usage:\n ~$ csr <name>"
+	else
+		#if only name is provided control will enter here
+    printf "Searching arsenal for host \"$1\"\n\n"
+    sudo cobbler system report --name="$1"
+	fi
+}
+
 
 ##############################################
 # End of custom scripts and bash preferences

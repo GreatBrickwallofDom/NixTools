@@ -1,10 +1,39 @@
 #!/bin/bash
 
+#
+
 # Source global definitions
 if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
 
+if [[ $HOSTNAME = *.fanops.net ]]; then
+   source ~/.bash_profile
+fi
+
+# BEGIN SETUP PATHS
+# This method should avoid duplicates if any and add useful paths rubi specific
+function addToPATH {
+  if [ -d "$1" ]; then
+    case ":$PATH:" in
+      *":$1:"*) :;; # already there
+      *) PATH="$1:$PATH";; # or PATH="$PATH:$1"
+    esac
+  fi
+}
+
+addToPATH /sbin
+addToPATH /usr/lib64/qt-3.3/bin
+addToPATH /usr/local/bin
+addToPATH /usr/bin
+addToPATH /usr/local/sbin
+addToPATH /usr/sbin
+addToPATH /opt/puppetlabs/bin
+addToPATH $HOME/.local/bin
+addToPATH $HOME/bin
+
+export PATH
+# END SETUP PATH
 
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
