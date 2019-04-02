@@ -156,7 +156,7 @@ function repeat() {       # Repeat n times command.
 }
 
 # Better ssh, copy bashrc to homedir and use as temp bashrc delete when done
-# accepts short names for rubi fqdns (ex. frpd-ade0000.lab1)
+# accepts short names for rubi fqdns 
 function s() {
   if [[ $1 =~ f[a-z]{3}-[a-z]{3}[0-9]{4}\.[a-z]{3}[0-9]{1}$ ]]; then
     local targetHost="$1.fanops.net"
